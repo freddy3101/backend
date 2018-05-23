@@ -2,6 +2,8 @@ const express = require('express');
 const bcript = require('bcrypt');
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
+const morgan = require('morgan');
+const cors = require('cors');
 
 
 const userRouter = require('./api/routes/user.routes');
@@ -9,25 +11,30 @@ const keyRouter = require('./api/routes/key.routes');
 
 mongoose.Promise = Promise;
 const saltRounds = 12;
-mongoose.connect('mongodb://freddy32:freddy123@ds049935.mlab.com:49935/dataproyect')
-.then(()=>{
+// mongoose.connect('mongodb://freddy32:freddy123@ds049935.mlab.com:49935/dataproyect')
+mongoose.connect('mongodb+srv://freddy:' + process.env.MONGO_ATLAS_PW + '@cluster0-bklg8.mongodb.net/test?retryWrites=true')
+  .then(() => {
     console.log('conexión al servidor exitosa')
-})
-.catch((err)=>{
+  })
+  .catch((err) => {
     console.log(`error al conextar al servidor: ${err.message}`)
-})
+
+  })
 
 const PORT = process.env.PORT || 3000;
 const app = express();
-app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
-app.get('/',(req, res)=>{
-    res.setHeader('Content-Type', 'text/html');
-    res.send('hola desde nodejs');
+app.use(morgan('dev'))
+app.get('/', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send('hola desde nodejs');
 });
 
-app.use('/user',userRouter);
-app.use('/key',keyRouter);
+app.use('/user', userRouter);
+app.use('/key', keyRouter);
 // app.post('/api/login',async(req, res)=>{
 //     const {email, password} = req.body;
 //     console.log('server', email, password);
@@ -51,6 +58,6 @@ app.use('/key',keyRouter);
 //     })
 // })
 
-app.listen(PORT,()=>{
-    console.log(`servidor ejecutandose en el puerto ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`servidor ejecutandose en el puerto ${PORT}`);
 })

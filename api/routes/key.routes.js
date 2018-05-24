@@ -12,17 +12,23 @@ router.get('/:stockId', (req, res, next) => {
   const id = req.params.stockId;
   Stock.findById(id).exec().then(
     doc => {
-      console.log(doc)
-      res.json(doc)
+    if(doc){
+        console.log(doc)
+        res.status(200).json(doc)
+    }else{
+        res.status(500).json({message:'invalido id'})
+    }
     }
   ).catch(err => {
-    console.log(err)
+   res.status(500).json({
+       err: err
+   })
   });
 })
 router.get('/', (req, res) => {
   Stock.find().exec()
     .then(doc => {
-      res.json(doc)
+     res.status(200).json(doc)
     })
     .catch(err => {
         res.json({

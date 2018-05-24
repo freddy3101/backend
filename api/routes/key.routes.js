@@ -12,23 +12,32 @@ router.get('/:stockId', (req, res, next) => {
   const id = req.params.stockId;
   Stock.findById(id).exec().then(
     doc => {
-    if(doc){
+      if (doc) {
         console.log(doc)
         res.status(200).json(doc)
-    }else{
-        res.status(500).json({message:'invalido id'})
-    }
+      } else {
+        res.status(500).json({
+          message: 'invalido id'
+        })
+      }
     }
   ).catch(err => {
-   res.status(500).json({
-       err: err
-   })
+    res.status(500).json({
+      err: err
+    })
   });
 })
 router.get('/', (req, res) => {
   Stock.find().exec()
     .then(doc => {
-     res.status(200).json(doc)
+    //if (doc.length > 0){
+      res.status(200).json(doc)
+    //}
+   // else{
+      // res.status(404).json({
+      //   message:'no existen registros para mostrar'
+      // })
+   // }
     })
     .catch(err => {
         res.json({
@@ -50,13 +59,62 @@ router.post('/', (req, res, next) => {
   stock.save()
     .then(result => {
       console.log(result)
+      res.status(201).json({
+        message: 'handlin POST requests to /stock'
+      })
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+        console.log(err)
+        res.status(500).json({
+          error: err
+        })
+      }
+
+
+
+    );
 
   res.status(200).json({
     message: 'manejar post agregar stock',
     createStock: stock
   })
+});
+
+
+router.delete('/:stockId', (req, res, next) => {
+  const id = req.params.stockId;
+  console.log('valor de id' ,id)
+  Stock.findOneAndRemove({
+      _id: id
+    }).exec()
+    .then(
+      result => {
+        res.status(200).json(result)
+        console.log('documento removido exitosamente')
+      }
+    ).catch(
+      err => {
+        res.status(500).json({
+          error: err,
+          message:'error al intentar eliminar registro contactar con administradodr'
+        })
+      }
+    )
 })
 
+router.patch('/',(req, res, next)=>{
+  const _id = req.body.stockId;
+
+  Stock.findByIdAndUpdate(_id, req.body,{new:true}).exec().then(
+    doc=>{
+      res.status(20).json(doc)
+    }
+  ).catch(
+    err=>{
+      res.status(500).json({
+        error:err
+      })
+    }
+  )
+})
 module.exports = router

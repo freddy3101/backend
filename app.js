@@ -8,8 +8,13 @@ const cors = require('cors');
 
 const userRouter = require('./api/routes/user.routes');
 const keyRouter = require('./api/routes/key.routes');
+const pedidoRouter = require('./api/routes/pedido.routes');
 
-mongoose.Promise = Promise;
+const corsOptions={
+  origin:'http://localhost:4200',
+  optionsSuccessStatus:200
+}
+mongoose.Promise = global.Promise;
 const saltRounds = 12;
 // mongoose.connect('mongodb://freddy32:freddy123@ds049935.mlab.com:49935/dataproyect')
 mongoose.connect('mongodb+srv://freddy:' + process.env.MONGO_ATLAS_PW + '@cluster0-bklg8.mongodb.net/test?retryWrites=true')
@@ -27,7 +32,8 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(bodyParser.json());
-app.use(morgan('dev'))
+app.use(morgan('dev'));
+app.use(cors(corsOptions));
 app.get('/', (req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.send('hola desde nodejs');
@@ -35,6 +41,8 @@ app.get('/', (req, res) => {
 
 app.use('/user', userRouter);
 app.use('/key', keyRouter);
+app.use('/pedido', pedidoRouter);
+
 // app.post('/api/login',async(req, res)=>{
 //     const {email, password} = req.body;
 //     console.log('server', email, password);

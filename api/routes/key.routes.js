@@ -10,34 +10,63 @@ const Stock = require('../../models/stock.model');
 // });
 router.get('/:stockId', (req, res, next) => {
   const id = req.params.stockId;
-  Stock.findById(id).exec().then(
-    doc => {
-      if (doc) {
-        console.log(doc)
-        res.status(200).json(doc)
-      } else {
-        res.status(500).json({
-          message: 'invalido id'
-        })
+  Stock.findById(id)
+    .select('cod cant img')
+    .exec()
+    .then(
+      doc => {
+        if (doc) {
+          console.log(doc)
+          res.status(200).json({
+            response: {
+              codigo: doc.cod,
+              cantidad: doc.cant,
+              imagen: doc.img
+            },
+            request: {
+              type: "GET",
+              url: 'http://localhost:3000/' + doc._id
+            }
+          })
+        } else {
+          res.status(500).json({
+            message: 'invalido id'
+          })
+        }
       }
-    }
-  ).catch(err => {
-    res.status(500).json({
-      err: err
-    })
-  });
+    ).catch(err => {
+      res.status(500).json({
+        err: err.message
+      })
+    });
 })
 router.get('/', (req, res) => {
-  Stock.find().exec()
+  Stock.find()
+    .select('_id cod cant img')
+    .exec()
     .then(doc => {
-    //if (doc.length > 0){
+      //if (doc.length > 0){
+      // const response = {
+      //   // count: doc.length,
+      //   items: doc.map(doc => {
+      //     return {
+      //       cod: doc.cod,
+      //       cant: doc.cant,
+      //       img: doc.img,
+      //       // request: {
+      //       //   type: "GET",
+      //       //   url: "http://localhost:3000/key/" + doc._id
+      //       // }
+      //     }
+      //   })
+      // }
       res.status(200).json(doc)
-    //}
-   // else{
+      //}
+      // else{
       // res.status(404).json({
       //   message:'no existen registros para mostrar'
       // })
-   // }
+      // }
     })
     .catch(err => {
         res.json({
@@ -58,61 +87,86 @@ router.post('/', (req, res, next) => {
   })
   stock.save()
     .then(result => {
-      console.log(result)
+      //  console.log(result)
       res.status(201).json({
-        message: 'handlin POST requests to /stock'
+        message: 'handlin POST requests to /stock',
+        items: {
+          codigo: result.cod,
+          cantidad: result.cant,
+          imagen: result.img,
+          request: {
+            type: "GET",
+            url: "http://localhost:3000/key/" + result._id
+          }
+        }
       })
     })
     .catch(err => {
-        console.log(err)
-        res.status(500).json({
-          error: err
-        })
-      }
-
-
-
-    );
-
-  res.status(200).json({
-    message: 'manejar post agregar stock',
-    createStock: stock
-  })
+      res.status(500).json({
+        error: err
+      })
+    });
 });
 
 
 router.delete('/:stockId', (req, res, next) => {
   const id = req.params.stockId;
-  console.log('valor de id' ,id)
+  console.log('valor de id', id)
   Stock.findOneAndRemove({
       _id: id
     }).exec()
     .then(
       result => {
-        res.status(200).json(result)
-        console.log('documento removido exitosamente')
+        if (result) {
+          res.status(200).json({
+            response: {
+              codigo: result.cod,
+              cantidad: result.cant,
+              imagen: result.img
+            },
+            request: {
+              type: "GET",
+              url: 'http://localhost:3000/key/'
+            }
+
+          })
+          console.log('documento removido exitosamente')
+        } else {
+          res.status(500).json({
+            response: 'no exites el articulo con el id ' + id
+          })
+        }
       }
+
     ).catch(
       err => {
         res.status(500).json({
           error: err,
-          message:'error al intentar eliminar registro contactar con administradodr'
+          message: 'error al intentar eliminar registro contactar con administradodr'
         })
       }
     )
 })
 
-router.patch('/',(req, res, next)=>{
+router.put('/', (req, res, next) => {
   const _id = req.body.stockId;
 
-  Stock.findByIdAndUpdate(_id, req.body,{new:true}).exec().then(
-    doc=>{
-      res.status(20).json(doc)
+  Stock.findByIdAndUpdate(_id, req.body, {
+    new: true
+  }).exec().then(
+    doc => {
+      res.status(200).json({
+        response: doc,
+        request: {
+          type: "GET",
+          url: 'http://localhost:3000/key/' + _id
+        }
+      })
     }
   ).catch(
-    err=>{
+    err => {
       res.status(500).json({
-        error:err
+        error: err.message
       })
     }
   )

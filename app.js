@@ -1,5 +1,5 @@
 const express = require('express');
-const bcript = require('bcrypt');
+
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
 const morgan = require('morgan');
@@ -11,6 +11,7 @@ const keyRouter = require('./api/routes/key.routes');
 const pedidoRouter = require('./api/routes/pedido.routes');
 
 const corsOptions={
+  // origin:'http://localhost:4200',
   origin:'http://localhost:4200',
   optionsSuccessStatus:200
 }
@@ -33,6 +34,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 app.use(morgan('dev'));
+app.use('/uploads',express.static('uploads'))
 app.use(cors(corsOptions));
 app.get('/', (req, res) => {
   res.setHeader('Content-Type', 'text/html');
@@ -42,29 +44,6 @@ app.get('/', (req, res) => {
 app.use('/user', userRouter);
 app.use('/key', keyRouter);
 app.use('/pedido', pedidoRouter);
-
-// app.post('/api/login',async(req, res)=>{
-//     const {email, password} = req.body;
-//     console.log('server', email, password);
-//  const result = await User.findOne({email,password});
-//  if (result){
-//     return res.json(result);
-//      console.log('bienvendio');
-//  }else{
-//      console.log('acceso denegado')
-//  }
-// res.end();
-// })
-
-// app.get('/api/stock',async(req, res)=>{
-//     Stock.find({},function(err, result){
-//         if(err){
-//             consol.log('valor de error',err);
-//             return
-//         }
-//         res.json(result)
-//     })
-// })
 
 app.listen(PORT, () => {
   console.log(`servidor ejecutandose en el puerto ${PORT}`);

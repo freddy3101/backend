@@ -12,7 +12,7 @@ const pedidoRouter = require('./api/routes/pedido.routes');
 
 const corsOptions={
   // origin:'http://localhost:4200',
-  origin:'http://localhost:4200',
+  origin:'https://freddy3101.github.io',
   optionsSuccessStatus:200
 }
 mongoose.Promise = global.Promise;

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose')
-const Pedido = require('../../models/pedido.model');
-const Stocks = require('../../models/stock.model');
+const Pedido = require('../models/pedido.model');
+const Stocks = require('../models/stock.model');
 
 router.get('/:orderId', (req, res, next) => {
     Pedido.findById(req.params.orderId)

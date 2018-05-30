@@ -1,14 +1,43 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const multer = require('multer');
 
-const Stock = require('../../models/stock.model');
+const Stock = require('../models/stock.model');
+const stockController = require('../controllers/stock.controller');
+const checkAuth = require('../middleware/check-auth');
 // router.get('/', (req, res, next) => {
 //   res.status(200).json({
 //     message: 'Incio de user router / key'
 //   })
 // });
-router.get('/:stockId', (req, res, next) => {
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
+
+const fileFilter = (req, file, cb) => {
+  // reject a file
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5
+  },
+  fileFilter: fileFilter
+});
+
+router.get('/:stockId', checkAuth, (req, res, next) => {
   const id = req.params.stockId;
   Stock.findById(id)
     .select('cod cant img')
@@ -40,50 +69,13 @@ router.get('/:stockId', (req, res, next) => {
       })
     });
 })
-router.get('/', (req, res) => {
-  Stock.find()
-    .select('_id cod cant img')
-    .exec()
-    .then(doc => {
-      //if (doc.length > 0){
-      // const response = {
-      //   // count: doc.length,
-      //   items: doc.map(doc => {
-      //     return {
-      //       cod: doc.cod,
-      //       cant: doc.cant,
-      //       img: doc.img,
-      //       // request: {
-      //       //   type: "GET",
-      //       //   url: "http://localhost:3000/key/" + doc._id
-      //       // }
-      //     }
-      //   })
-      // }
-      res.status(200).json(doc)
-      //}
-      // else{
-      // res.status(404).json({
-      //   message:'no existen registros para mostrar'
-      // })
-      // }
-    })
-    .catch(err => {
-        res.json({
-          message: 'error al intentar recuperar registros',
-          status: false,
-          error: err
-        })
-      }
-
-    );
-});
-router.post('/', (req, res, next) => {
+router.get('/',checkAuth, stockController.stock_get_all);
+router.post('/',upload.single('keyimage') , checkAuth, (req, res, next) => {
   const stock = new Stock({
     _id: new mongoose.Types.ObjectId(),
     cod: req.body.cod,
     cant: req.body.cant,
-    img: req.body.img
+    img: req.file.path
   })
   stock.save()
     .then(result => {

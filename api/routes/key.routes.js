@@ -111,7 +111,6 @@ router.post('/', (req, res, next) => {
 
 router.delete('/:stockId', (req, res, next) => {
   const id = req.params.stockId;
-  console.log('valor de id', id)
   Stock.findOneAndRemove({
       _id: id
     }).exec()

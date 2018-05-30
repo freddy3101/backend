@@ -37,54 +37,90 @@ const User = require('../../models/user.model');
 //   })
 // });
 
-router.post('/login', async (req, res, next) => {
-  const {
-    email,
-    password,
-  } = req.body;
-  console.log('server', email, password);
-  const result = await User.findOne({
-    email,
-    password
-
-  });
-  if (result) {
-    return res.json(result);
-    console.log('bienvendio');
-  } else {
-    console.log('acceso denegado')
-  }
-  res.end();
+router.post('/login',  (req, res, next) => {
+ User.find({email: req.body.email}).exec().then(
+   user=>{
+     if(user.length < 1){
+       return res.status(401).json({
+         result: user,
+         message:'no exite usuario con el email'
+       })
+     }
+     bcript.compare(req.body.password, user[0].password,(err,result)=>{
+        if(err){
+          return res.status(401).json({
+            error:err.message,
+            message:'fallo la utentificacion'
+          })
+        }
+        if(result){
+          return res.status(200).json({
+            message:'autentificacion satisfactoria'
+          })
+        }
+        res.status(401).json({
+          message:'no exite usuario con el email o el password es incorrecto'
+        })
+     })
+   }
+ ).catch(
+   err=>{
+     res.status(500).json({
+       error:err.message
+     })
+   }
+ )
 })
 
 router.post('/signup', (req, res, next) => {
-  console.log('valores de email and passwor ', req.body)
-  bcript.hash(req.body.password, 10, (err, hash) => {
-    if (err) {
-      return res.status(500).json({
+  //TODO haxer algo po aqui
+  User.find({
+    email: req.body.email
+  }).exec().then(
+    user => {
+      if (user.length >=1) {
+        return res.status(409).json({
+          message: 'ya exites un usuario con ese correo'
+        })
+      } else {
+        bcript.hash(req.body.password, 10, (err, hash) => {
+          if (err) {
+            return res.status(500).json({
+              error: err.message
+            })
+          } else {
+            const user = new User({
+              _id: new mongoose.Types.ObjectId(),
+              email: req.body.email,
+              password: hash
+
+            });
+            user.save().then(
+              result => {
+                res.status(201).json({
+                  data: result,
+                  message: 'usuario fue creado ok'
+                })
+              }
+            ).catch(err => {
+              res.status(500).json({
+                error: err
+              })
+            });
+          }
+        })
+
+      }
+    }
+  ).catch(
+    err => {
+      res.status(500).json({
         error: err.message
       })
-    } else {
-      const user = new User({
-        _id: new mongoose.Types.ObjectId(),
-        email: req.body.email,
-        password: hash
-      
-      });
-      user.save().then(
-        result=>{
-          res.status(201).json({
-            data: result,
-            message: 'user account create'
-          })
-        }
-      ).catch(err=>{
-        res.status(500).json({
-          error: err
-        })
-      });
     }
-  })
+  );
+
+
 });
 
 router.get('/', (req, res) => {
@@ -125,5 +161,21 @@ router.get('/', (req, res) => {
 
     );
 });
+
+router.delete('/:userId',(req, res, next)=>{
+  User.findOneAndRemove({_id: req.params.userId}).exec().then(
+    result=>{
+      res.status(200).json({
+        message:'usuario eleminado del sistema'
+      })
+    }
+  ).catch(
+    err=>{
+      res.status(500).json({
+        error: err.message
+      })
+    }
+  )
+})
 
 module.exports = router
